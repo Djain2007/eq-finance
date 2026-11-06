@@ -1,0 +1,17 @@
+# Real configuration — never commit credentials
+config/config.php
+eq-finance-config.php
+.env
+
+# Logs and runtime data
+storage/logs/*
+!storage/logs/.gitkeep
+storage/*.log
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+temp_*.php

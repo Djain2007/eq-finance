@@ -1,0 +1,14 @@
+# EQ Finance — API routing (used when the root .htaccess is not in effect)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+  RewriteRule ^$ index.php?_route=status [L,QSA]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^([a-z]+)/?$ index.php?_route=$1 [L,QSA]
+</IfModule>
+<IfModule mod_authz_core.c>
+  <Files "index.php">
+    Require all granted
+  </Files>
+</IfModule>

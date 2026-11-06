@@ -1,0 +1,43 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eq-finance-web
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=eq_finance
+      - DB_USER=eq_user
+      - DB_PASS=eq_password
+      - APP_FORCE_HTTPS=false
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./storage/logs:/var/www/html/storage/logs
+
+  db:
+    image: mariadb:10.11
+    container_name: eq-finance-db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=eq_finance
+      - MYSQL_USER=eq_user
+      - MYSQL_PASSWORD=eq_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/install.sql:/docker-entrypoint-initdb.d/01-install.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -u eq_user --password=eq_password || mysqladmin ping -h localhost -u eq_user --password=eq_password || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  db_data:

@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test-linux:
+    name: PHP ${{ matrix.php }} on Ubuntu
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3']
+
+    services:
+      mysql:
+        image: mariadb:10.11
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: eq_finance_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mariadb-admin ping" --health-interval 5s --health-timeout 5s --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, dom, pdo_mysql, mbstring, openssl, json
+          coverage: none
+
+      - name: Setup Test Configuration & Database
+        run: |
+          cp config/config.example.php config/config.php
+          sed -i "s/'name'    => 'cpuser_eqfinance'/'name'    => 'eq_finance_test'/g" config/config.php
+          sed -i "s/'user'    => 'cpuser_eqf'/'user'    => 'root'/g" config/config.php
+          sed -i "s/'pass'    => 'the-password-you-generated'/'pass'    => 'root'/g" config/config.php
+          sed -i "s/'force_https' => true/'force_https' => false/g" config/config.php
+          mysql -h 127.0.0.1 -u root -proot eq_finance_test < database/install.sql
+
+      - name: Run Test Suite
+        run: php tests/run-tests.php
+
+  test-windows:
+    name: PHP 8.2 on Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: curl, dom, pdo_mysql, mbstring, openssl, json
+          coverage: none
+
+      - name: Verify Unit Tests
+        run: |
+          php -r "require 'app/bootstrap.php'; use App\Services\SymbolValidator; exit(SymbolValidator::validate('NSE:RELIANCE')['ok'] ? 0 : 1);"
+          php -r "require 'app/bootstrap.php'; use App\Services\StockParser; \$p = new StockParser(); exit(\$p->parse(file_get_contents('tests/fixtures/quote-reliance.html'), 'NSE', 'RELIANCE')['ok'] ? 0 : 1);"
+
+  docker-build:
+    name: Docker Compose Build & Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Stack
+        run: docker compose up -d --build
+
+      - name: Wait for services to be ready
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -s http://localhost:8080/api/v1/status || true)
+            if echo "$STATUS" | grep -q '"success":true'; then
+              echo "API is healthy!"
+              break
+            fi
+            echo "Waiting for stack... ($i/30)"
+            sleep 2
+          done
+
+      - name: Smoke Test Endpoints
+        run: |
+          curl -f http://localhost:8080/docs
+          curl -f http://localhost:8080/api/v1/status
+
+      - name: Run in-container Test Suite
+        run: docker compose exec -T web php tests/run-tests.php
+
+      - name: Teardown
+        run: docker compose down

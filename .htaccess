@@ -1,0 +1,80 @@
+# ============================================================================
+# EQ Finance — root .htaccess (Apache / LiteSpeed, cPanel shared hosting)
+# Works at the domain root or inside a sub-folder of public_html.
+# ============================================================================
+
+Options -Indexes
+Options +FollowSymLinks
+
+# Forward the Authorization header to PHP (needed for Bearer tokens on
+# FastCGI / CGI setups such as cPanel).
+<IfModule mod_setenvif.c>
+  SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:Authorization} .
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+
+# Deny all direct access to private directories and sensitive files.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_URI} !/cron/cleanup\.php$
+  RewriteRule ^(app|config|database|storage|tests|cron)(/|$) - [F,L]
+  RewriteRule (^|/)\.(git|env|htaccess|htpasswd|ht) - [F,L]
+  RewriteRule \.(sql|log|md|lock|json|example\.php|dist|bak|orig|swp)$ - [F,L]
+</IfModule>
+
+<FilesMatch "^(\.htaccess|\.gitignore|composer\.(json|lock)|README\.md|TESTING\.md|KNOWN_LIMITATIONS\.md|LICENSE)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Routing
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Landing page and docs
+  RewriteRule ^$ public/index.php [L]
+  RewriteRule ^docs/?$ public/docs.php [L]
+
+  # Static assets served from /public/assets via a short URL (optional)
+  RewriteRule ^assets/(.*)$ public/assets/$1 [L]
+
+  # Clean API URLs: /api/v1/stock -> /api/v1/index.php?_route=stock
+  RewriteRule ^api/v1/?$ api/v1/index.php?_route=status [L,QSA]
+  RewriteRule ^api/v1/([a-z]+)/?$ api/v1/index.php?_route=$1 [L,QSA]
+
+  # Admin clean URLs: /admin/api-keys -> /admin/api-keys.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^admin/([a-z\-]+)/?$ admin/$1.php [L,QSA]
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always unset X-Powered-By
+</IfModule>
+
+# PHP hardening (ignored on hosts where these cannot be set from .htaccess)
+<IfModule mod_php.c>
+  php_flag display_errors Off
+  php_flag expose_php Off
+</IfModule>
+
+# Sensible defaults for static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+</IfModule>

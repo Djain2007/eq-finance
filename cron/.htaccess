@@ -1,0 +1,14 @@
+# EQ Finance — cron scripts. Only cleanup.php may be reached over HTTP (token-protected).
+<IfModule mod_authz_core.c>
+  Require all denied
+  <Files "cleanup.php">
+    Require all granted
+  </Files>
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+  <Files "cleanup.php">
+    Allow from all
+  </Files>
+</IfModule>
