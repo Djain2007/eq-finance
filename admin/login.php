@@ -57,5 +57,5 @@ auth_header('Sign in', 'Administrator access');
   <label class="field"><span>Password</span><input type="password" name="password" required autocomplete="current-password"></label>
   <button type="submit" class="btn btn-primary btn-block"<?= $locked > 0 ? ' disabled' : '' ?>>Sign in</button>
 </form>
-<p class="auth-foot"><a href="<?= e(Url::docs()) ?>">API documentation</a></p>
+<p class="auth-foot"><a href="<?= e(Url::docs()) ?>">Documentation</a> · <a href="<?= e(Url::rootPath() ?: '') ?>/test">API Studio</a></p>
 <?php auth_footer(); ?>

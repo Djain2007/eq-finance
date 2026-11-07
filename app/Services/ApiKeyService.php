@@ -101,12 +101,52 @@ final class ApiKeyService
         return $row ?: null;
     }
 
-    /** @return array[] */
-    public static function all(): array
+    /**
+     * Get exact key counts across all statuses.
+     * @return array{total:int, active:int, expired:int, disabled:int, revoked:int}
+     */
+    public static function counts(): array
     {
+        $pdo = Database::connection();
+        $row = $pdo->query(
+            "SELECT 
+                COUNT(*) AS total,
+                COALESCE(SUM(status = 'active' AND (expires_at IS NULL OR expires_at > UTC_TIMESTAMP())), 0) AS active,
+                COALESCE(SUM(status = 'active' AND expires_at IS NOT NULL AND expires_at <= UTC_TIMESTAMP()), 0) AS expired,
+                COALESCE(SUM(status = 'disabled'), 0) AS disabled,
+                COALESCE(SUM(status = 'revoked'), 0) AS revoked
+             FROM api_keys"
+        )->fetch() ?: [];
+
+        return [
+            'total'    => (int) ($row['total'] ?? 0),
+            'active'   => (int) ($row['active'] ?? 0),
+            'expired'  => (int) ($row['expired'] ?? 0),
+            'disabled' => (int) ($row['disabled'] ?? 0),
+            'revoked'  => (int) ($row['revoked'] ?? 0),
+        ];
+    }
+
+    /**
+     * @param ?string $filter 'all' | 'active' | 'disabled' | 'revoked' | 'expired' | null
+     * @return array[]
+     */
+    public static function all(?string $filter = null): array
+    {
+        $where = '';
+        if ($filter === 'active') {
+            $where = " WHERE k.status = 'active' AND (k.expires_at IS NULL OR k.expires_at > UTC_TIMESTAMP())";
+        } elseif ($filter === 'expired') {
+            $where = " WHERE k.status = 'active' AND k.expires_at IS NOT NULL AND k.expires_at <= UTC_TIMESTAMP()";
+        } elseif ($filter === 'disabled') {
+            $where = " WHERE k.status = 'disabled'";
+        } elseif ($filter === 'revoked') {
+            $where = " WHERE k.status = 'revoked'";
+        }
+
         return Database::connection()->query(
-            'SELECT k.*, (SELECT COUNT(*) FROM api_usage u WHERE u.api_key_id = k.id) AS total_requests
-             FROM api_keys k ORDER BY k.created_at DESC, k.id DESC'
+            "SELECT k.*, (SELECT COUNT(*) FROM api_usage u WHERE u.api_key_id = k.id) AS total_requests
+             FROM api_keys k{$where} ORDER BY k.created_at DESC, k.id DESC"
         )->fetchAll();
     }
 

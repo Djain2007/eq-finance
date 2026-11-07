@@ -19,11 +19,13 @@ final class StatsService
         $monthStart = gmdate('Y-m-01 00:00:00');
 
         $keys = $pdo->query(
-            'SELECT COUNT(*) AS total,
-                    SUM(status = "active") AS active,
-                    SUM(status = "disabled") AS disabled,
-                    SUM(status = "revoked") AS revoked
-             FROM api_keys'
+            "SELECT 
+                COUNT(*) AS total,
+                COALESCE(SUM(status = 'active' AND (expires_at IS NULL OR expires_at > UTC_TIMESTAMP())), 0) AS active,
+                COALESCE(SUM(status = 'active' AND expires_at IS NOT NULL AND expires_at <= UTC_TIMESTAMP()), 0) AS expired,
+                COALESCE(SUM(status = 'disabled'), 0) AS disabled,
+                COALESCE(SUM(status = 'revoked'), 0) AS revoked
+             FROM api_keys"
         )->fetch() ?: [];
 
         $usage = $pdo->prepare(
@@ -43,6 +45,7 @@ final class StatsService
         return [
             'keys_total'    => (int) ($keys['total'] ?? 0),
             'keys_active'   => (int) ($keys['active'] ?? 0),
+            'keys_expired'  => (int) ($keys['expired'] ?? 0),
             'keys_disabled' => (int) ($keys['disabled'] ?? 0),
             'keys_revoked'  => (int) ($keys['revoked'] ?? 0),
             'requests_total'=> (int) ($u['total'] ?? 0),
@@ -121,11 +124,12 @@ final class StatsService
     public static function perKeyUsage(int $days = 30): array
     {
         $stmt = Database::connection()->prepare(
-            'SELECT k.id, k.name, k.key_prefix, k.status, k.last_used_at,
-                    COUNT(u.id) AS total, SUM(u.response_status >= 400) AS failed,
-                    SUM(u.created_at >= :today) AS today
+            'SELECT k.id, k.name, k.key_prefix, k.status, k.last_used_at, k.created_at,
+                    COUNT(u.id) AS total, COALESCE(SUM(u.response_status >= 400), 0) AS failed,
+                    COALESCE(SUM(u.created_at >= :today), 0) AS today
              FROM api_keys k LEFT JOIN api_usage u ON u.api_key_id = k.id AND u.created_at >= :s
-             GROUP BY k.id ORDER BY total DESC, k.created_at DESC'
+             GROUP BY k.id, k.name, k.key_prefix, k.status, k.last_used_at, k.created_at 
+             ORDER BY total DESC, k.created_at DESC'
         );
         $stmt->execute([':s' => gmdate('Y-m-d H:i:s', time() - $days * 86400), ':today' => gmdate('Y-m-d 00:00:00')]);
         return $stmt->fetchAll();

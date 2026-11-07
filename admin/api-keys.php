@@ -103,8 +103,17 @@ $editKey = $editId > 0 ? ApiKeyService::find($editId) : null;
 if ($editKey && $editKey['status'] === 'revoked') {
     $editKey = null;
 }
-$keys = ApiKeyService::all();
-$showRevoked = get_str('show', 10) === 'all';
+
+$counts = ApiKeyService::counts();
+$statusFilter = get_str('status', 10);
+if ($statusFilter === '' && get_str('show', 10) === 'all') {
+    $statusFilter = 'all';
+}
+if (!in_array($statusFilter, ['all', 'active', 'disabled', 'revoked', 'expired'], true)) {
+    $statusFilter = 'all';
+}
+
+$keys = ApiKeyService::all($statusFilter === 'all' ? null : $statusFilter);
 $defaults = [
     'requests_per_minute' => SettingsService::get('default_requests_per_minute'),
     'requests_per_day'    => SettingsService::get('default_requests_per_day'),
@@ -154,18 +163,28 @@ require __DIR__ . '/includes/header.php';
   </section>
 
   <section class="card">
-    <div class="card-head"><h2>Keys</h2>
-      <a class="link" href="<?= e(Url::admin('api-keys.php')) ?><?= $showRevoked ? '' : '?show=all' ?>"><?= $showRevoked ? 'Hide revoked' : 'Show revoked' ?></a>
+    <div class="card-head">
+      <div>
+        <h2>Keys <span class="badge badge-muted"><?= count($keys) ?></span></h2>
+      </div>
+      <div class="filter-pills" role="tablist">
+        <a href="<?= e(Url::admin('api-keys.php?status=all')) ?>" class="filter-pill<?= $statusFilter === 'all' ? ' active' : '' ?>">All <span class="pill-count"><?= $counts['total'] ?></span></a>
+        <a href="<?= e(Url::admin('api-keys.php?status=active')) ?>" class="filter-pill<?= $statusFilter === 'active' ? ' active' : '' ?>">Active <span class="pill-count"><?= $counts['active'] ?></span></a>
+        <a href="<?= e(Url::admin('api-keys.php?status=disabled')) ?>" class="filter-pill<?= $statusFilter === 'disabled' ? ' active' : '' ?>">Disabled <span class="pill-count"><?= $counts['disabled'] ?></span></a>
+        <a href="<?= e(Url::admin('api-keys.php?status=revoked')) ?>" class="filter-pill<?= $statusFilter === 'revoked' ? ' active' : '' ?>">Revoked <span class="pill-count"><?= $counts['revoked'] ?></span></a>
+        <?php if ($counts['expired'] > 0): ?>
+          <a href="<?= e(Url::admin('api-keys.php?status=expired')) ?>" class="filter-pill<?= $statusFilter === 'expired' ? ' active' : '' ?>">Expired <span class="pill-count"><?= $counts['expired'] ?></span></a>
+        <?php endif; ?>
+      </div>
     </div>
     <?php if (!$keys): ?>
-      <p class="empty">No API keys yet. Create one with the form.</p>
+      <p class="empty"><?= $statusFilter === 'all' ? 'No API keys yet. Create one with the form.' : 'No ' . e($statusFilter) . ' API keys found.' ?></p>
     <?php else: ?>
     <div class="table-wrap">
       <table class="table">
         <thead><tr><th>Name</th><th>Status</th><th>Limits (min / day / month)</th><th>Used now</th><th>Created</th><th>Expires</th><th>Last used</th><th class="num">Requests</th><th></th></tr></thead>
         <tbody>
         <?php foreach ($keys as $k): ?>
-          <?php if ($k['status'] === 'revoked' && !$showRevoked) continue; ?>
           <?php $usage = $k['status'] === 'revoked' ? null : RateLimitService::usage((int) $k['id']); ?>
           <tr class="<?= $k['status'] === 'revoked' ? 'row-muted' : '' ?>">
             <td><strong><?= e($k['name']) ?></strong><div class="mono small muted"><?= e($k['key_prefix']) ?>…</div></td>

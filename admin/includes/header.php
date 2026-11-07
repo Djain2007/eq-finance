@@ -31,6 +31,7 @@ $nav = [
     ],
     'System' => [
         ['status', 'System Status', 'status.php'],
+        ['test', 'API Studio', (Url::rootPath() ?: '') . '/test', true],
         ['docs', 'Documentation', Url::docs(), true],
         ['logout', 'Logout', 'logout.php'],
     ],

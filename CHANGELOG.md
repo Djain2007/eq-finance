@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-11-07
+
+### Added
+- **Institutional Design System**: Completely overhauled UI across the Admin Panel, API Documentation, and Testing Studio. Replaced "vibe-coded" neon glows and radial gradients with a matte Obsidian Slate & Cobalt palette, crisp borders, and left-aligned structured typography.
+- **API Key Status Filtering & Exact Synchronization**: Added live status tabs on the API Keys page (`All`, `Active`, `Disabled`, `Revoked`, `Expired`) with precise count pills matching the Dashboard metric card.
+- **Expired Key Categorization**: Added SQL UTC timestamp comparison in `StatsService::dashboard()` and `ApiKeyService::counts()` to accurately separate active keys from expired keys.
+- **Strict MySQL `ONLY_FULL_GROUP_BY` Compatibility**: Fixed column aggregations in `StatsService::perKeyUsage()`.
+
+### Changed
+- All card headers, forms, company data, and status indicators are strictly left-aligned; financial numbers and metric grids feature right-aligned tabular numerals (`font-variant-numeric: tabular-nums`).
+- Added bidirectional cross-navigation links between Documentation, Admin Panel, and API Studio.
+
 ## [1.0.1] - 2026-11-07
 
 ### Added

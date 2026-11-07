@@ -24,10 +24,26 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <div class="stat-grid">
-  <div class="stat"><div class="stat-label">Total API keys</div><div class="stat-value"><?= fmt_num($stats['keys_total']) ?></div><div class="stat-sub"><?= fmt_num($stats['keys_active']) ?> active · <?= fmt_num($stats['keys_disabled']) ?> disabled · <?= fmt_num($stats['keys_revoked']) ?> revoked</div></div>
-  <div class="stat"><div class="stat-label">Requests today</div><div class="stat-value"><?= fmt_num($stats['requests_today']) ?></div><div class="stat-sub"><?= fmt_num($stats['requests_month']) ?> this month · <?= fmt_num($stats['requests_total']) ?> all time</div></div>
-  <div class="stat"><div class="stat-label">Success rate</div><div class="stat-value"><?= $successRate === null ? '—' : e($successRate) . '%' ?></div><div class="stat-sub"><?= fmt_num($stats['requests_ok']) ?> successful · <?= fmt_num($stats['requests_failed']) ?> failed</div></div>
-  <div class="stat"><div class="stat-label">Cache hit rate</div><div class="stat-value"><?= $cacheRate === null ? '—' : e($cacheRate) . '%' ?></div><div class="stat-sub"><?= fmt_num($cache['fresh']) ?> fresh entries · avg <?= $stats['avg_ms'] === null ? '—' : e($stats['avg_ms']) . ' ms' ?></div></div>
+  <a class="stat stat-clickable" href="<?= e(Url::admin('api-keys.php')) ?>" title="Manage API keys">
+    <div class="stat-label">Active API keys</div>
+    <div class="stat-value"><?= fmt_num($stats['keys_active']) ?> <span class="stat-unit">/ <?= fmt_num($stats['keys_total']) ?> total</span></div>
+    <div class="stat-sub"><?= fmt_num($stats['keys_disabled']) ?> disabled · <?= fmt_num($stats['keys_revoked']) ?> revoked<?= $stats['keys_expired'] > 0 ? ' · ' . fmt_num($stats['keys_expired']) . ' expired' : '' ?></div>
+  </a>
+  <a class="stat stat-clickable" href="<?= e(Url::admin('api-usage.php')) ?>" title="View API usage">
+    <div class="stat-label">Requests today</div>
+    <div class="stat-value"><?= fmt_num($stats['requests_today']) ?></div>
+    <div class="stat-sub"><?= fmt_num($stats['requests_month']) ?> this month · <?= fmt_num($stats['requests_total']) ?> all time</div>
+  </a>
+  <div class="stat">
+    <div class="stat-label">Success rate</div>
+    <div class="stat-value"><?= $successRate === null ? '—' : e($successRate) . '%' ?></div>
+    <div class="stat-sub"><?= fmt_num($stats['requests_ok']) ?> successful · <?= fmt_num($stats['requests_failed']) ?> failed</div>
+  </div>
+  <a class="stat stat-clickable" href="<?= e(Url::admin('cache-settings.php')) ?>" title="Inspect cache settings">
+    <div class="stat-label">Cache hit rate</div>
+    <div class="stat-value"><?= $cacheRate === null ? '—' : e($cacheRate) . '%' ?></div>
+    <div class="stat-sub"><?= fmt_num($cache['fresh']) ?> fresh entries · avg <?= $stats['avg_ms'] === null ? '—' : e($stats['avg_ms']) . ' ms' ?></div>
+  </a>
 </div>
 
 <div class="grid-2">

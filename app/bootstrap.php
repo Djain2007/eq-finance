@@ -9,7 +9,7 @@
 declare(strict_types=1);
 
 define('EQF_ROOT', dirname(__DIR__));
-define('EQF_VERSION', '1.0.1');
+define('EQF_VERSION', '1.0.2');
 define('EQF_NAME', 'EQ Finance');
 
 // Never display errors to clients. Errors are logged to storage/logs.
