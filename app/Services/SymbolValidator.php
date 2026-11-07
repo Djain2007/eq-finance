@@ -17,8 +17,8 @@ use App\Config\Config;
 final class SymbolValidator
 {
     public const EXCHANGE_PATTERN = '/^[A-Z]{2,15}$/';
-    // Letters, digits, and a few characters real tickers use (e.g. M&M, BAJAJ-AUTO, BRK.B, 0700).
-    public const SYMBOL_PATTERN = '/^[A-Z0-9][A-Z0-9.\-_&]{0,23}$/';
+    // Letters, digits, and a few characters real tickers use (e.g. M&M, BAJAJ-AUTO, BRK.B, .INX, .DJI, 0700).
+    public const SYMBOL_PATTERN = '/^[A-Z0-9.][A-Z0-9.\-_&]{0,23}$/';
 
     /**
      * @return array{ok:bool, exchange?:string, symbol?:string, canonical?:string, code?:string, message?:string}
@@ -43,7 +43,7 @@ final class SymbolValidator
         if (!preg_match(self::EXCHANGE_PATTERN, $exchange)) {
             return self::fail('INVALID_SYMBOL', 'Exchange identifier contains invalid characters.');
         }
-        if (!preg_match(self::SYMBOL_PATTERN, $symbol)) {
+        if (!preg_match(self::SYMBOL_PATTERN, $symbol) || $symbol === '.' || str_contains($symbol, '..')) {
             return self::fail('INVALID_SYMBOL', 'Ticker symbol contains invalid characters.');
         }
         if (!in_array($exchange, self::allowedExchanges(), true)) {

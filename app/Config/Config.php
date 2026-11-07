@@ -50,7 +50,11 @@ final class Config
                 'login_max_attempts' => 5, 'login_lockout' => 900,
             ],
             'scraper' => [
-                'allowed_exchanges' => ['NSE', 'BOM', 'NASDAQ', 'NYSE'],
+                'allowed_exchanges' => [
+                    'NSE', 'BOM', 'NASDAQ', 'NYSE', 'LON', 'TYO', 'HKG', 'SHA', 'SHE',
+                    'FRA', 'ETR', 'TSX', 'ASX', 'SGX', 'INDEXBOM', 'INDEXNSE',
+                    'INDEXSP', 'INDEXDJX', 'INDEXFTSE',
+                ],
                 'source_host' => 'www.google.com',
                 'max_response_bytes' => 3000000,
             ],
