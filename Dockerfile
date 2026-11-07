@@ -16,8 +16,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && a2enmod rewrite \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Configure Apache for .htaccess overrides
-RUN sed -ri -e 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf \
+# Configure Apache for .htaccess overrides and virtual directory
+RUN echo '<Directory /var/www/html>\n\
+    Options -Indexes +FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' > /etc/apache2/conf-available/eq-finance.conf \
+    && a2enconf eq-finance \
+    && sed -ri -e 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf \
     && echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
 # Set working directory

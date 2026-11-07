@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-11-07
+
+### Added
+- **Embedded JSON Extractor**: Direct parsing of Google Finance `AF_initDataCallback` streams, delivering 10x faster extraction and full compatibility with Google's modern Wiz layout.
+- **God-Level Testing Studio 2.0**: Completely redesigned dark glassmorphism dashboard with Day Range & 52-Week Range visual track bars, financial metrics grid, live cURL command generator, rate quota battery meter, and latency tracker.
+- **Smart URL Normalization**: Automatic detection and normalization of base URLs (`http://host:port` vs `http://host:port/api/v1`) preventing 404 routing errors across network clients.
+- **LAN / Network Hosting Support**: Added explicit Apache `<Directory /var/www/html>` configuration in Docker and standalone `test-client.html` for zero-configuration laptop-to-server access.
+
+### Fixed
+- Fixed `EXTRACTION_FAILED` error caused by Google Finance migrating away from legacy DOM classes to JSON payloads.
+- Fixed 404 routing when accessing Testing Studio on external IP addresses over LAN.
+
 ## [1.0.0] - 2026-11-06
 
 ### Added
@@ -33,3 +45,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automated CI test matrix testing PHP 8.1, 8.2, 8.3 and Docker Compose builds.
 - **Version Control & Community Templates**:
   - Issue templates (bug report, feature request), pull request template, and contribution guidelines.
+

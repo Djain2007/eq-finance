@@ -79,20 +79,21 @@ final class StockParser
         libxml_use_internal_errors($prev);
         $xp = new DOMXPath($doc);
 
-        $data = array_fill_keys(self::FIELDS, null);
-        $data['symbol'] = $exchange . ':' . $symbol;
-        $data['exchange'] = $exchange;
+        // Strategy 0: Modern embedded JSON payload (AF_initDataCallback)
+        $data = $this->extractFromEmbeddedJson($html, $exchange, $symbol);
 
         // --- Strategy 1: data attributes on the price container -------------------
         $priceNode = $xp->query('//*[@data-last-price]')->item(0);
         if ($priceNode instanceof DOMElement) {
-            $data['price'] = self::toFloat($priceNode->getAttribute('data-last-price'));
+            if ($data['price'] === null) {
+                $data['price'] = self::toFloat($priceNode->getAttribute('data-last-price'));
+            }
             $cur = strtoupper(trim($priceNode->getAttribute('data-currency-code')));
-            if (preg_match('/^[A-Z]{3}$/', $cur)) {
+            if ($data['currency'] === null && preg_match('/^[A-Z]{3}$/', $cur)) {
                 $data['currency'] = $cur;
             }
             $ts = $priceNode->getAttribute('data-last-normal-market-timestamp');
-            if (preg_match('/^\d{9,11}$/', $ts)) {
+            if ($data['source_timestamp'] === null && preg_match('/^\d{9,11}$/', $ts)) {
                 $data['source_timestamp'] = gmdate('Y-m-d\TH:i:s\Z', (int) $ts);
             }
         }
@@ -409,5 +410,85 @@ final class StockParser
             }
         }
         return null;
+    }
+
+    /**
+     * Extracts structured financial data from Google Finance's embedded AF_initDataCallback payloads.
+     */
+    private function extractFromEmbeddedJson(string $html, string $exchange, string $symbol): array
+    {
+        $data = array_fill_keys(self::FIELDS, null);
+        $data['symbol'] = $exchange . ':' . $symbol;
+        $data['exchange'] = $exchange;
+
+        $pattern = '/AF_initDataCallback\s*\(\s*\{key:\s*\'([^\']+)\'[^\}]*data:\s*(\[.*?\])\s*,\s*sideChannel:\s*\{/s';
+        if (!preg_match_all($pattern, $html, $matches)) {
+            return $data;
+        }
+
+        $datasets = [];
+        foreach ($matches[1] as $i => $k) {
+            $decoded = json_decode($matches[2][$i], true);
+            if (is_array($decoded)) {
+                $datasets[$k] = $decoded;
+            }
+        }
+
+        // 1. Primary quote data from ds:2 or ds:13
+        $quoteNode = $datasets['ds:2'][0][0][0] ?? $datasets['ds:13'][0][0][0] ?? null;
+        if (is_array($quoteNode)) {
+            $data['name'] = isset($quoteNode[2]) ? (string) $quoteNode[2] : null;
+            $data['currency'] = isset($quoteNode[4]) ? (string) $quoteNode[4] : null;
+            if (isset($quoteNode[5]) && is_array($quoteNode[5])) {
+                $data['price'] = isset($quoteNode[5][0]) && is_numeric($quoteNode[5][0]) ? (float) $quoteNode[5][0] : null;
+                $data['change'] = isset($quoteNode[5][1]) && is_numeric($quoteNode[5][1]) ? (float) $quoteNode[5][1] : null;
+                $data['change_percent'] = isset($quoteNode[5][2]) && is_numeric($quoteNode[5][2]) ? (float) $quoteNode[5][2] : null;
+            }
+            if (isset($quoteNode[7]) && is_numeric($quoteNode[7])) {
+                $data['previous_close'] = (float) $quoteNode[7];
+            }
+            if (isset($quoteNode[11][0]) && is_numeric($quoteNode[11][0])) {
+                $data['source_timestamp'] = gmdate('Y-m-d\TH:i:s\Z', (int) $quoteNode[11][0]);
+            }
+        }
+
+        // 2. Detailed company financials and metrics from ds:3
+        $infoNode = $datasets['ds:3'][0][0] ?? null;
+        if (is_array($infoNode)) {
+            if ($data['name'] === null && isset($infoNode[1])) $data['name'] = (string) $infoNode[1];
+            if (isset($infoNode[2]) && is_string($infoNode[2])) $data['description'] = Str::limit($infoNode[2], 2000);
+            if (isset($infoNode[7]) && is_numeric($infoNode[7])) $data['market_cap'] = (float) $infoNode[7];
+            if ($data['previous_close'] === null && isset($infoNode[8]) && is_numeric($infoNode[8])) $data['previous_close'] = (float) $infoNode[8];
+            if (isset($infoNode[9]) && is_numeric($infoNode[9])) $data['day_low'] = (float) $infoNode[9];
+            if (isset($infoNode[10]) && is_numeric($infoNode[10])) $data['day_high'] = (float) $infoNode[10];
+            if (isset($infoNode[11]) && is_numeric($infoNode[11])) $data['fifty_two_week_low'] = (float) $infoNode[11];
+            if (isset($infoNode[12]) && is_numeric($infoNode[12])) $data['fifty_two_week_high'] = (float) $infoNode[12];
+            if (isset($infoNode[14]) && is_numeric($infoNode[14])) $data['volume'] = (float) $infoNode[14];
+            if (isset($infoNode[16]) && is_numeric($infoNode[16])) $data['pe_ratio'] = (float) $infoNode[16];
+            if (isset($infoNode[17]) && is_numeric($infoNode[17])) $data['dividend_yield'] = (float) $infoNode[17];
+            if (isset($infoNode[18]) && is_numeric($infoNode[18])) $data['average_volume'] = (float) $infoNode[18];
+            if (isset($infoNode[19]) && is_numeric($infoNode[19])) $data['eps'] = (float) $infoNode[19];
+            if (isset($infoNode[30]) && filter_var($infoNode[30], FILTER_VALIDATE_URL)) $data['website'] = (string) $infoNode[30];
+            if (isset($infoNode[71]) && is_string($infoNode[71])) $data['sector'] = (string) $infoNode[71];
+            if (isset($infoNode[78]) && is_string($infoNode[78])) $data['industry'] = (string) $infoNode[78];
+        }
+
+        // 3. Stats summary fallback from ds:8
+        $statsNode = $datasets['ds:8'][0][0][0] ?? null;
+        if (is_array($statsNode)) {
+            if ($data['day_low'] === null && isset($statsNode[2]) && is_numeric($statsNode[2])) $data['day_low'] = (float) $statsNode[2];
+            if ($data['day_high'] === null && isset($statsNode[5]) && is_numeric($statsNode[5])) $data['day_high'] = (float) $statsNode[5];
+            if ($data['price'] === null && isset($statsNode[6]) && is_numeric($statsNode[6])) $data['price'] = (float) $statsNode[6];
+            if ($data['change'] === null && isset($statsNode[8]) && is_numeric($statsNode[8])) $data['change'] = (float) $statsNode[8];
+            if ($data['change_percent'] === null && isset($statsNode[10]) && is_numeric($statsNode[10])) $data['change_percent'] = (float) $statsNode[10];
+            if ($data['currency'] === null && isset($statsNode[12]) && is_string($statsNode[12])) $data['currency'] = (string) $statsNode[12];
+            if ($data['name'] === null && isset($statsNode[14]) && is_string($statsNode[14])) $data['name'] = (string) $statsNode[14];
+            if ($data['previous_close'] === null && isset($statsNode[15]) && is_numeric($statsNode[15])) $data['previous_close'] = (float) $statsNode[15];
+            if ($data['market_cap'] === null && isset($statsNode[16]) && is_numeric($statsNode[16])) $data['market_cap'] = (float) $statsNode[16];
+            if ($data['volume'] === null && isset($statsNode[17]) && is_numeric($statsNode[17])) $data['volume'] = (float) $statsNode[17];
+            if ($data['sector'] === null && isset($statsNode[18]) && is_string($statsNode[18])) $data['sector'] = (string) $statsNode[18];
+        }
+
+        return $data;
     }
 }

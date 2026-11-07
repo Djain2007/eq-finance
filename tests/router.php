@@ -25,7 +25,7 @@ if (preg_match('#^/docs/?$#', $uri)) {
     require $root . '/public/docs.php';
     return true;
 }
-if (preg_match('#^/test(\.html)?/?$#', $uri)) {
+if (preg_match('#^/(test|playground)(\.html)?/?$#', $uri)) {
     require $root . '/public/test.html';
     return true;
 }

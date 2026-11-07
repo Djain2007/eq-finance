@@ -44,6 +44,7 @@ Options +FollowSymLinks
   RewriteRule ^$ public/index.php [L]
   RewriteRule ^docs/?$ public/docs.php [L]
   RewriteRule ^test/?$ public/test.html [L]
+  RewriteRule ^playground/?$ public/test.html [L]
 
   # Static assets served from /public/assets via a short URL (optional)
   RewriteRule ^assets/(.*)$ public/assets/$1 [L]

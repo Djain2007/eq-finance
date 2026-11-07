@@ -40,3 +40,4 @@ Ensure that:
 1. Create a feature branch: `git checkout -b feature/your-feature-name`.
 2. Commit changes with clear, descriptive commit messages.
 3. Push to your branch and open a Pull Request.
+

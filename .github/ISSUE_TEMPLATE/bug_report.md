@@ -31,3 +31,4 @@ A clear and concise description of what you expected to happen.
 - Deployment method: [e.g. Docker Compose, cPanel, Native PHP]
 - PHP Version: [e.g. 8.2.12]
 - MySQL / MariaDB Version: [e.g. MariaDB 10.11]
+

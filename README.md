@@ -51,6 +51,20 @@ Once started, open:
 - **API Documentation**: [http://localhost:8080/docs](http://localhost:8080/docs)
 - **System Health**: [http://localhost:8080/api/v1/status](http://localhost:8080/api/v1/status)
 
+### 🌐 Accessing over Local Network (LAN) / Remote Server
+
+If you have hosted EQ Finance on a dedicated machine or server (e.g., `192.168.29.68:8080`) and want to access it from your laptop or external client:
+
+1. **Web Access**:
+   - **Testing Studio**: `http://<SERVER_IP>:8080/test`
+   - **Admin Panel**: `http://<SERVER_IP>:8080/admin/`
+   - **API Documentation**: `http://<SERVER_IP>:8080/docs`
+2. **Standalone Client (`test-client.html`)**:
+   - Double-click `test-client.html` on any laptop or client machine.
+   - Enter your Server Base URL: `http://<SERVER_IP>:8080/api/v1` (or `http://<SERVER_IP>:8080`).
+   - Enter your API Key and click **Verify Connection**.
+   - Full CORS support is enabled out of the box, allowing instant cross-origin queries!
+
 To stop the containers:
 ```bash
 docker compose down
