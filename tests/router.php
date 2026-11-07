@@ -25,6 +25,10 @@ if (preg_match('#^/docs/?$#', $uri)) {
     require $root . '/public/docs.php';
     return true;
 }
+if (preg_match('#^/test(\.html)?/?$#', $uri)) {
+    require $root . '/public/test.html';
+    return true;
+}
 if (preg_match('#^/assets/(.+)$#', $uri, $m)) {
     $file = $root . '/public/assets/' . $m[1];
     if (is_file($file)) {

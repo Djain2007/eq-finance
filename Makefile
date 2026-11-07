@@ -31,3 +31,4 @@ test:
 
 test-local:
 	php tests/run-tests.php
+

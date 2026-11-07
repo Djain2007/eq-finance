@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # EQ Finance — Windows PowerShell One-Command Installer & Runner
 # ==============================================================================
 $Port = if ($env:PORT) { $env:PORT } else { "8080" }
@@ -21,6 +21,7 @@ if ($dockerCmd) {
             Write-Host "================================================================" -ForegroundColor Green
             Write-Host "  EQ Finance is UP and RUNNING!                                 " -ForegroundColor Green
             Write-Host "================================================================" -ForegroundColor Green
+            Write-Host "  - Testing Studio:    http://localhost:$Port/test"
             Write-Host "  - Admin Panel:       http://localhost:$Port/admin/"
             Write-Host "  - API Documentation: http://localhost:$Port/docs"
             Write-Host "  - Health Endpoint:   http://localhost:$Port/api/v1/status"
@@ -68,3 +69,4 @@ Write-Host "  Press Ctrl+C to terminate the server."
 Write-Host "================================================================" -ForegroundColor Green
 Start-Process "http://localhost:$Port/docs"
 & $phpPath -S "127.0.0.1:$Port" -t . tests/router.php
+

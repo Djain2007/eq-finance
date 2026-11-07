@@ -46,6 +46,7 @@ Or run the platform-specific one-command launcher:
 | **Any (Makefile)** | `make install` |
 
 Once started, open:
+- **Testing Studio**: [http://localhost:8080/test](http://localhost:8080/test) (or open `test-client.html` in your browser)
 - **Admin Setup**: [http://localhost:8080/admin/](http://localhost:8080/admin/) (create the admin account on first visit)
 - **API Documentation**: [http://localhost:8080/docs](http://localhost:8080/docs)
 - **System Health**: [http://localhost:8080/api/v1/status](http://localhost:8080/api/v1/status)

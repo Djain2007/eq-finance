@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EQ Finance — API Testing Studio</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f293d;
+      --card-hover: #162032;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.12);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #fff;
+      font-size: 18px;
+    }
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+    .brand span {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-left: 6px;
+      background: #1f2937;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 12px;
+    }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--card-border);
+      transition: all 0.2s;
+    }
+    .nav-links a:hover {
+      color: #fff;
+      background: #1f2937;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Config Bar */
+    .grid-form {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+    @media (max-width: 768px) {
+      .grid-form { grid-template-columns: 1fr; }
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    input, select, button {
+      font-family: inherit;
+      font-size: 14px;
+    }
+    input[type="text"], input[type="password"] {
+      background: #0d131f;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: var(--accent);
+    }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-secondary {
+      background: #1f2937;
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+    .btn-secondary:hover { background: #374151; }
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Rate limits / status strip */
+    .status-strip {
+      display: flex;
+      gap: 16px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--card-border);
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+    .status-pill.online { background: var(--green-bg); color: var(--green); }
+    .status-pill.offline { background: var(--red-bg); color: var(--red); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: #0d131f;
+      padding: 4px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border: 1px solid var(--card-border);
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    /* Presets */
+    .presets {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .preset-chip {
+      background: #162032;
+      border: 1px solid var(--card-border);
+      color: #93c5fd;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: all 0.15s;
+    }
+    .preset-chip:hover {
+      background: #1e293b;
+      border-color: #3b82f6;
+    }
+
+    /* Stock Display Card */
+    .stock-view {
+      display: none;
+    }
+    .stock-view.active {
+      display: block;
+    }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .stock-symbol {
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: #fff;
+    }
+    .stock-name {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .stock-price-block {
+      text-align: right;
+    }
+    @media (max-width: 600px) {
+      .stock-price-block { text-align: left; }
+    }
+    .stock-price {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .stock-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .pos { color: var(--green); background: var(--green-bg); }
+    .neg { color: var(--red); background: var(--red-bg); }
+    .neutral { color: var(--text-muted); background: #1f2937; }
+
+    /* Key-Value Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+      background: #0d131f;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .metric-val {
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: #f3f4f6;
+    }
+
+    /* Meta Badges */
+    .meta-badges {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      font-size: 11px;
+    }
+    .badge {
+      background: #1f2937;
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--card-border);
+    }
+    .badge strong { color: #fff; }
+
+    /* Batch Table */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: #0d131f;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 12px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    tr:hover td { background: var(--card-hover); }
+
+    /* JSON Inspector */
+    .raw-inspector {
+      position: relative;
+    }
+    .raw-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    pre {
+      background: #070a11;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #93c5fd;
+      overflow-x: auto;
+      max-height: 380px;
+    }
+
+    .error-alert {
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">EQ</div>
+      <div>
+        <h1>EQ Finance <span>Testing Studio</span></h1>
+      </div>
+    </div>
+    <div class="nav-links">
+      <a href="/admin/" target="_blank">Admin Panel ↗</a>
+      <a href="/docs" target="_blank">API Docs ↗</a>
+    </div>
+  </header>
+
+  <!-- Connection Settings -->
+  <div class="card">
+    <div class="card-title">
+      <span>API Configuration</span>
+      <span id="connStatus" class="status-pill offline"><span class="dot"></span> Unchecked</span>
+    </div>
+    <div class="grid-form">
+      <div class="form-group">
+        <label for="apiUrl">API Base URL</label>
+        <input type="text" id="apiUrl" value="" placeholder="http://localhost:8080">
+      </div>
+      <div class="form-group">
+        <label for="apiKey">API Key (Bearer / X-API-Key)</label>
+        <input type="password" id="apiKey" placeholder="eqf_live_..." autocomplete="off">
+      </div>
+      <button class="btn" id="btnTestConn" onclick="checkHealth()">
+        <span>Test Connection</span>
+      </button>
+    </div>
+
+    <div class="status-strip">
+      <div>Rate Limits: <span id="rateLimitInfo">No calls made yet</span></div>
+      <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+        <input type="checkbox" id="chkSaveKey" checked>
+        <label for="chkSaveKey" style="cursor:pointer">Remember API Key</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('single')">Single Quote (/stock)</button>
+    <button class="tab-btn" onclick="switchTab('batch')">Batch Quotes (/stocks)</button>
+    <button class="tab-btn" onclick="switchTab('status')">System Health (/status)</button>
+  </div>
+
+  <!-- Tab 1: Single Quote -->
+  <div id="tabSingle" class="tab-content">
+    <div class="card">
+      <div class="card-title">Query Single Quote</div>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="singleSymbol" style="flex:1" placeholder="e.g. NSE:RELIANCE or NASDAQ:AAPL" value="NSE:RELIANCE">
+        <button class="btn" id="btnFetchSingle" onclick="fetchSingleQuote()">Fetch Quote</button>
+      </div>
+      <div class="presets">
+        <span style="font-size:11px; color:var(--text-muted); align-self:center;">Presets:</span>
+        <button class="preset-chip" onclick="setSingle('NSE:RELIANCE')">NSE:RELIANCE</button>
+        <button class="preset-chip" onclick="setSingle('NSE:TCS')">NSE:TCS</button>
+        <button class="preset-chip" onclick="setSingle('NASDAQ:AAPL')">NASDAQ:AAPL</button>
+        <button class="preset-chip" onclick="setSingle('NASDAQ:NVDA')">NASDAQ:NVDA</button>
+        <button class="preset-chip" onclick="setSingle('NYSE:MSFT')">NYSE:MSFT</button>
+        <button class="preset-chip" onclick="setSingle('BOM:500325')">BOM:500325</button>
+        <button class="preset-chip" onclick="setSingle('INDEXSP:.INX')">INDEXSP:.INX</button>
+      </div>
+    </div>
+
+    <!-- Live Stock Result Card -->
+    <div id="stockResultCard" class="card stock-view">
+      <div class="stock-header">
+        <div>
+          <div class="stock-symbol" id="cardSymbol">NSE:RELIANCE</div>
+          <div class="stock-name" id="cardName">Reliance Industries Limited</div>
+        </div>
+        <div class="stock-price-block">
+          <div class="stock-price" id="cardPrice">₹0.00</div>
+          <div class="stock-change" id="cardChange">+0.00 (+0.00%)</div>
+        </div>
+      </div>
+
+      <!-- Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-label">Previous Close</span>
+          <span class="metric-val" id="mPrevClose">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Day Range</span>
+          <span class="metric-val" id="mDayRange">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">52-Week Range</span>
+          <span class="metric-val" id="mYearRange">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Market Cap</span>
+          <span class="metric-val" id="mMarketCap">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">P/E Ratio</span>
+          <span class="metric-val" id="mPeRatio">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">EPS</span>
+          <span class="metric-val" id="mEps">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Volume</span>
+          <span class="metric-val" id="mVolume">-</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Avg Volume</span>
+          <span class="metric-val" id="mAvgVolume">-</span>
+        </div>
+      </div>
+
+      <!-- Cache & Metadata Badges -->
+      <div class="meta-badges">
+        <span class="badge">Cache: <strong id="mCached">-</strong></span>
+        <span class="badge">Age: <strong id="mCacheAge">-</strong></span>
+        <span class="badge">Retrieved: <strong id="mRetrieved">-</strong></span>
+        <span class="badge">Latency: <strong id="mLatency">-</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Batch Quotes -->
+  <div id="tabBatch" class="tab-content" style="display:none">
+    <div class="card">
+      <div class="card-title">Query Batch Quotes</div>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="batchSymbols" style="flex:1" placeholder="Comma-separated symbols, e.g. NSE:RELIANCE,NSE:TCS,NASDAQ:AAPL" value="NSE:RELIANCE,NSE:TCS,NASDAQ:AAPL">
+        <button class="btn" id="btnFetchBatch" onclick="fetchBatchQuotes()">Fetch Batch</button>
+      </div>
+      <div class="presets">
+        <span style="font-size:11px; color:var(--text-muted); align-self:center;">Presets:</span>
+        <button class="preset-chip" onclick="setBatch('NSE:RELIANCE,NSE:TCS,NSE:INFY')">India Tech</button>
+        <button class="preset-chip" onclick="setBatch('NASDAQ:AAPL,NASDAQ:MSFT,NASDAQ:NVDA,NASDAQ:GOOGL')">US MegaCap</button>
+        <button class="preset-chip" onclick="setBatch('INDEXSP:.INX,INDEXNSE:NIFTY_50,INDEXBOM:SENSEX')">Indices</button>
+      </div>
+
+      <div class="table-container" id="batchTableContainer" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Change</th>
+              <th>Day Range</th>
+              <th>Market Cap</th>
+              <th>Cache</th>
+            </tr>
+          </thead>
+          <tbody id="batchTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: System Health -->
+  <div id="tabStatus" class="tab-content" style="display:none">
+    <div class="card">
+      <div class="card-title">API & System Health (/status)</div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:14px;">The <code>/api/v1/status</code> endpoint is public and does not require an API key.</p>
+      <button class="btn" onclick="checkHealth(true)">Refresh Health Check</button>
+      <div id="healthSummary" class="metrics-grid" style="margin-top:16px; display:none;">
+        <div class="metric-item"><span class="metric-label">Overall Status</span><span class="metric-val" id="hStatus">-</span></div>
+        <div class="metric-item"><span class="metric-label">API Name</span><span class="metric-val" id="hName">-</span></div>
+        <div class="metric-item"><span class="metric-label">API Version</span><span class="metric-val" id="hVer">-</span></div>
+        <div class="metric-item"><span class="metric-label">Database</span><span class="metric-val" id="hDb">-</span></div>
+        <div class="metric-item"><span class="metric-label">Service Available</span><span class="metric-val" id="hAvail">-</span></div>
+        <div class="metric-item"><span class="metric-label">Server Timestamp</span><span class="metric-val" id="hTime">-</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Banner -->
+  <div id="errorAlert" class="error-alert"></div>
+
+  <!-- Raw JSON Response Inspector -->
+  <div class="card raw-inspector">
+    <div class="raw-header">
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; color:var(--text-muted)">
+        HTTP Response Inspector <span id="reqMeta" style="margin-left:8px; font-weight:normal; text-transform:none;"></span>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="copyJson()">Copy JSON</button>
+    </div>
+    <pre id="jsonViewer">// Results will appear here...</pre>
+  </div>
+
+</div>
+
+<script>
+  // Automatic Base URL detection
+  const defaultUrl = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file'))
+    ? window.location.origin
+    : 'http://localhost:8080';
+  
+  const urlInput = document.getElementById('apiUrl');
+  const keyInput = document.getElementById('apiKey');
+  const chkSave = document.getElementById('chkSaveKey');
+
+  urlInput.value = localStorage.getItem('eqf_api_url') || defaultUrl;
+  keyInput.value = localStorage.getItem('eqf_api_key') || '';
+
+  urlInput.addEventListener('change', () => {
+    localStorage.setItem('eqf_api_url', urlInput.value.trim());
+  });
+  keyInput.addEventListener('input', () => {
+    if (chkSave.checked) {
+      localStorage.setItem('eqf_api_key', keyInput.value.trim());
+    }
+  });
+  chkSave.addEventListener('change', () => {
+    if (!chkSave.checked) {
+      localStorage.removeItem('eqf_api_key');
+    } else {
+      localStorage.setItem('eqf_api_key', keyInput.value.trim());
+    }
+  });
+
+  function getBaseUrl() {
+    let u = urlInput.value.trim();
+    return u.replace(/\/+$/, '');
+  }
+
+  function getApiKey() {
+    return keyInput.value.trim();
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorAlert');
+    el.innerText = msg;
+    el.style.display = 'block';
+  }
+
+  function clearError() {
+    const el = document.getElementById('errorAlert');
+    el.style.display = 'none';
+    el.innerText = '';
+  }
+
+  function formatNumber(n, prefix = '') {
+    if (n === null || n === undefined) return '-';
+    if (typeof n === 'number') {
+      return prefix + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+    return prefix + n;
+  }
+
+  function updateRateHeaders(headers) {
+    const minRem = headers.get('X-RateLimit-Remaining-Minute');
+    const minLim = headers.get('X-RateLimit-Limit-Minute');
+    const dayRem = headers.get('X-RateLimit-Remaining-Day');
+    if (minRem !== null && minLim !== null) {
+      document.getElementById('rateLimitInfo').innerHTML = 
+        `<strong>${minRem} / ${minLim}</strong> req/min remaining` + 
+        (dayRem ? ` • <strong>${dayRem}</strong> left today` : '');
+    }
+  }
+
+  function showJson(data, status, duration) {
+    const pre = document.getElementById('jsonViewer');
+    pre.textContent = JSON.stringify(data, null, 2);
+    document.getElementById('reqMeta').innerHTML = 
+      `<span style="color:${status >= 200 && status < 300 ? '#10b981' : '#ef4444'}">HTTP ${status}</span> • ${duration}ms`;
+  }
+
+  function copyJson() {
+    const text = document.getElementById('jsonViewer').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert('JSON response copied to clipboard!');
+    });
+  }
+
+  // Switch tabs
+  function switchTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+    if (tab === 'single') {
+      event.target.classList.add('active');
+      document.getElementById('tabSingle').style.display = 'block';
+    } else if (tab === 'batch') {
+      event.target.classList.add('active');
+      document.getElementById('tabBatch').style.display = 'block';
+    } else if (tab === 'status') {
+      event.target.classList.add('active');
+      document.getElementById('tabStatus').style.display = 'block';
+      checkHealth(true);
+    }
+  }
+
+  function setSingle(sym) {
+    document.getElementById('singleSymbol').value = sym;
+    fetchSingleQuote();
+  }
+
+  function setBatch(syms) {
+    document.getElementById('batchSymbols').value = syms;
+    fetchBatchQuotes();
+  }
+
+  // Health check
+  async function checkHealth(verbose = false) {
+    clearError();
+    const btn = document.getElementById('btnTestConn');
+    const pill = document.getElementById('connStatus');
+    btn.disabled = true;
+    pill.className = 'status-pill';
+    pill.innerHTML = '<span class="dot"></span> Testing...';
+
+    const start = performance.now();
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/v1/status`);
+      const dur = Math.round(performance.now() - start);
+      const data = await res.json();
+      showJson(data, res.status, dur);
+
+      if (res.ok && data.success) {
+        pill.className = 'status-pill online';
+        pill.innerHTML = `<span class="dot"></span> Online (${dur}ms)`;
+
+        if (verbose) {
+          const d = data.data;
+          document.getElementById('healthSummary').style.display = 'grid';
+          document.getElementById('hStatus').textContent = d.status || 'ok';
+          document.getElementById('hName').textContent = d.name || '-';
+          document.getElementById('hVer').textContent = d.api_version || '-';
+          document.getElementById('hDb').textContent = d.database || '-';
+          document.getElementById('hAvail').textContent = d.service_available ? 'Yes' : 'No';
+          document.getElementById('hTime').textContent = d.timestamp || '-';
+        }
+      } else {
+        pill.className = 'status-pill offline';
+        pill.innerHTML = '<span class="dot"></span> Error';
+        showError(data?.error?.message || 'Server responded with an error');
+      }
+    } catch (e) {
+      pill.className = 'status-pill offline';
+      pill.innerHTML = '<span class="dot"></span> Offline';
+      showError('Failed to connect to EQ Finance API. Make sure the server or Docker container is running.');
+      showJson({ error: e.message }, 0, 0);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Single Quote Fetcher
+  async function fetchSingleQuote() {
+    clearError();
+    const symbol = document.getElementById('singleSymbol').value.trim();
+    if (!symbol) { showError('Please enter a symbol (e.g. NSE:RELIANCE)'); return; }
+
+    const key = getApiKey();
+    if (!key) { showError('API Key is required. Please enter an API key in the configuration bar.'); return; }
+
+    const btn = document.getElementById('btnFetchSingle');
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+
+    const start = performance.now();
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/v1/stock?symbol=${encodeURIComponent(symbol)}`, {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Accept': 'application/json'
+        }
+      });
+      const dur = Math.round(performance.now() - start);
+      updateRateHeaders(res.headers);
+
+      const data = await res.json();
+      showJson(data, res.status, dur);
+
+      if (res.ok && data.success) {
+        renderStockCard(data.data, data.meta);
+      } else {
+        document.getElementById('stockResultCard').classList.remove('active');
+        showError(data?.error?.message || `Error: ${res.status}`);
+      }
+    } catch (e) {
+      showError('Network error: ' + e.message);
+      showJson({ error: e.message }, 0, 0);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Fetch Quote';
+    }
+  }
+
+  function renderStockCard(d, meta) {
+    const card = document.getElementById('stockResultCard');
+    card.classList.add('active');
+
+    document.getElementById('cardSymbol').textContent = `${d.exchange}:${d.symbol}`;
+    document.getElementById('cardName').textContent = d.name || '-';
+
+    const curr = d.currency === 'INR' ? '₹' : (d.currency === 'USD' ? '$' : (d.currency || ''));
+    document.getElementById('cardPrice').textContent = `${curr}${formatNumber(d.price)}`;
+
+    const chgEl = document.getElementById('cardChange');
+    const chgVal = d.change || 0;
+    const chgPct = d.change_percent || 0;
+    const sign = chgVal > 0 ? '+' : '';
+    chgEl.textContent = `${sign}${formatNumber(chgVal)} (${sign}${formatNumber(chgPct)}%)`;
+    chgEl.className = 'stock-change ' + (chgVal > 0 ? 'pos' : (chgVal < 0 ? 'neg' : 'neutral'));
+
+    document.getElementById('mPrevClose').textContent = `${curr}${formatNumber(d.previous_close)}`;
+    document.getElementById('mDayRange').textContent = (d.day_low && d.day_high) ? `${curr}${d.day_low} - ${curr}${d.day_high}` : '-';
+    document.getElementById('mYearRange').textContent = (d.fifty_two_week_low && d.fifty_two_week_high) ? `${curr}${d.fifty_two_week_low} - ${curr}${d.fifty_two_week_high}` : '-';
+    document.getElementById('mMarketCap').textContent = d.market_cap ? formatNumber(d.market_cap) : '-';
+    document.getElementById('mPeRatio').textContent = formatNumber(d.pe_ratio);
+    document.getElementById('mEps').textContent = formatNumber(d.eps);
+    document.getElementById('mVolume').textContent = formatNumber(d.volume);
+    document.getElementById('mAvgVolume').textContent = formatNumber(d.average_volume);
+
+    document.getElementById('mCached').textContent = meta?.cached ? 'HIT' : 'MISS';
+    document.getElementById('mCacheAge').textContent = meta?.cache_age_seconds !== undefined ? `${meta.cache_age_seconds}s` : '-';
+    document.getElementById('mRetrieved').textContent = meta?.retrieved_at ? new Date(meta.retrieved_at).toLocaleTimeString() : '-';
+    document.getElementById('mLatency').textContent = meta?.source_latency_ms ? `${meta.source_latency_ms}ms` : '-';
+  }
+
+  // Batch Quotes Fetcher
+  async function fetchBatchQuotes() {
+    clearError();
+    const symbols = document.getElementById('batchSymbols').value.trim();
+    if (!symbols) { showError('Please enter comma-separated symbols'); return; }
+
+    const key = getApiKey();
+    if (!key) { showError('API Key is required.'); return; }
+
+    const btn = document.getElementById('btnFetchBatch');
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+
+    const start = performance.now();
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/v1/stocks?symbols=${encodeURIComponent(symbols)}`, {
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Accept': 'application/json'
+        }
+      });
+      const dur = Math.round(performance.now() - start);
+      updateRateHeaders(res.headers);
+
+      const data = await res.json();
+      showJson(data, res.status, dur);
+
+      if (res.ok && data.success) {
+        renderBatchTable(data.data);
+      } else {
+        document.getElementById('batchTableContainer').style.display = 'none';
+        showError(data?.error?.message || `Error: ${res.status}`);
+      }
+    } catch (e) {
+      showError('Network error: ' + e.message);
+      showJson({ error: e.message }, 0, 0);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Fetch Batch';
+    }
+  }
+
+  function renderBatchTable(items) {
+    const tbody = document.getElementById('batchTableBody');
+    tbody.innerHTML = '';
+    const container = document.getElementById('batchTableContainer');
+    container.style.display = 'block';
+
+    items.forEach(item => {
+      const tr = document.createElement('tr');
+      if (item.success && item.data) {
+        const d = item.data;
+        const curr = d.currency === 'INR' ? '₹' : (d.currency === 'USD' ? '$' : '');
+        const chgVal = d.change || 0;
+        const sign = chgVal > 0 ? '+' : '';
+        const chgClass = chgVal > 0 ? 'pos' : (chgVal < 0 ? 'neg' : 'neutral');
+
+        tr.innerHTML = `
+          <td><strong>${d.exchange}:${d.symbol}</strong></td>
+          <td>${d.name || '-'}</td>
+          <td>${curr}${formatNumber(d.price)}</td>
+          <td><span class="stock-change ${chgClass}" style="font-size:11px; padding:2px 6px;">${sign}${formatNumber(d.change_percent)}%</span></td>
+          <td>${d.day_low ? `${curr}${d.day_low} - ${curr}${d.day_high}` : '-'}</td>
+          <td>${d.market_cap ? formatNumber(d.market_cap) : '-'}</td>
+          <td><span class="badge">${item.meta?.cached ? 'HIT' : 'MISS'}</span></td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td><strong>${item.symbol}</strong></td>
+          <td colspan="5" style="color:var(--red); font-size:12px;">${item.error?.message || 'Failed to fetch'}</td>
+          <td><span class="badge" style="color:var(--red);">ERROR</span></td>
+        `;
+      }
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Trigger quick health check on load
+  checkHealth();
+</script>
+</body>
+</html>

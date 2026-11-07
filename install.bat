@@ -19,6 +19,7 @@ if %errorlevel% equ 0 (
             echo ================================================================
             echo   EQ Finance is UP and RUNNING!
             echo.
+            echo   - Testing Studio:    http://localhost:%PORT%/test
             echo   - Admin Panel:       http://localhost:%PORT%/admin/
             echo   - API Documentation: http://localhost:%PORT%/docs
             echo   - Health Endpoint:   http://localhost:%PORT%/api/v1/status
@@ -36,3 +37,4 @@ echo [!] Docker engine is not running or not installed.
 echo [*] Falling back to native Windows PowerShell installer...
 powershell -ExecutionPolicy Bypass -File "%~dp0install.ps1"
 exit /b %errorlevel%
+

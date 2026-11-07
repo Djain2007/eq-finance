@@ -91,3 +91,4 @@ fi
 
 echo "[EQ Finance] Startup complete. Starting web server..."
 exec "$@"
+

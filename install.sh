@@ -41,6 +41,7 @@ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; 
     echo "  🎉 EQ Finance is UP and RUNNING!                             "
     echo "================================================================"
     echo ""
+    echo "  - Testing Studio:    http://localhost:${PORT}/test"
     echo "  - Admin Panel:       http://localhost:${PORT}/admin/"
     echo "  - API Documentation: http://localhost:${PORT}/docs"
     echo "  - Health Endpoint:   http://localhost:${PORT}/api/v1/status"
@@ -90,3 +91,4 @@ echo "  Note: Configure config/config.php with your local MySQL credentials"
 echo "  Press Ctrl+C to stop."
 echo "================================================================"
 php -S "0.0.0.0:${PORT}" -t . tests/router.php
+
