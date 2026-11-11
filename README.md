@@ -1,4 +1,5 @@
 [![Powered by DartNode](https://dartnode.com/branding/DN-Open-Source-sm.png)](https://dartnode.com "Powered by DartNode - Free VPS for Open Source")
+<!-- Verified on DartNode: DNOS-1B1C8240 -->
 # EQ Finance
 
 [![CI](https://github.com/Djain2007/eq-finance/actions/workflows/ci.yml/badge.svg)](https://github.com/Djain2007/eq-finance/actions/workflows/ci.yml)
